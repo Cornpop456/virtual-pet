@@ -5,7 +5,6 @@ from pet import Pet, DeadPetError
 class PetRepository:
     def __init__(self):
         self.pets: dict[str, Pet] = {}
-        self.next_id = 0
 
     def save(self, pet: Pet) -> None:
         if not pet.is_alive:
