@@ -1,5 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from functools import wraps
 
 
 class DeadPetError(Exception):
@@ -7,6 +8,7 @@ class DeadPetError(Exception):
 
 
 def apply_policy(func):
+    @wraps(func)
     def wrapper(pet: Pet):
         if not pet.is_alive:
             raise DeadPetError("Can't perform action: pet is dead")
