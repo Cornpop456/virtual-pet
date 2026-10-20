@@ -45,7 +45,4 @@
 После исчезновения питомец больше не может выполнять действия и предоставлять актуальную статистику.
 
 ## Документация API 
-
-<a href="[https://github.io](https://cornpop456.github.io/virtual-pet/)" target="_blank">
-  <img src="https://shields.io" alt="Swagger API Docs" />
-</a>
+[Открыть Swagger UI](https://cornpop456.github.io/virtual-pet/)
