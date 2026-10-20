@@ -46,5 +46,6 @@
 
 ## Документация API 
 
-[![Swagger API Docs](https://shields.io)](https://cornpop456.github.io/virtual-pet/)
-
+<a href="[https://github.io](https://cornpop456.github.io/virtual-pet/)" target="_blank">
+  <img src="https://shields.io" alt="Swagger API Docs" />
+</a>
