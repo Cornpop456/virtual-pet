@@ -46,4 +46,4 @@
 
 ## Документация API 
 
-[![Swagger UI](https://cornpop456.github.io/virtual-pet/)](https://github.io)
+[![Swagger UI](https://cornpop456.github.io/virtual-pet/)](https://cornpop456.github.io/virtual-pet/)
