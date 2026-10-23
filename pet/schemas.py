@@ -21,7 +21,7 @@ class PetStat:
         }
 
 def pet_to_pet_stat(pet: Pet) -> PetStat:
-    if pet.pet_id is None:
+    if pet.pet_id == "":
         raise ValueError("Cannot create response for an unsaved pet")
 
     return PetStat(
