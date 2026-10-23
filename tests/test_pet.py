@@ -224,3 +224,12 @@ def test_decrease_life_can_make_pet_dead():
 
     assert pet.life == 0
     assert pet.is_alive is False
+
+
+def test_decrease_life_clamps_at_zero():
+    pet = Pet(name="Buddy", life=2)
+
+    pet.decrease_life(5)
+
+    assert pet.life == 0
+    assert pet.is_alive is False
