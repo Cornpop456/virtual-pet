@@ -34,7 +34,7 @@ def test_pet_to_pet_stat():
 
 
 def test_pet_to_pet_stat_unsaved_pet_raises():
-    pet = Pet(name="Buddy", life=10, pet_id=None)
+    pet = Pet(name="Buddy", life=10)
 
     with pytest.raises(
         ValueError,
