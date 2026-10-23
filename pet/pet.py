@@ -16,6 +16,7 @@ def apply_policy(func):
         LifeLossPolicy.apply(pet)
     return wrapper
 
+
 class LifeLossPolicy:
     @staticmethod
     def apply(pet: Pet) -> None:
@@ -67,6 +68,7 @@ class Pet:
         self.life -= life
         if self.life < 0:
             self.life = 0
+
 
 class PetFactory:
     @staticmethod
