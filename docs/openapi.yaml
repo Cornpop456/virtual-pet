@@ -7,6 +7,39 @@ servers:
 - url: http://localhost:8008
   description: Локальный сервер
 paths:
+ /api/v1/pets:
+    get:
+      tags:
+        - Pets
+      summary: Получить список питомцев
+      description: Возвращает список всех созданных питомцев с их текущей статистикой. Если питомцев нет, возвращается пустой массив.
+      operationId: getPets
+      responses:
+        "200":
+          description: Список питомцев (может быть пустым)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PetStat"
+              examples:
+                withPets:
+                  summary: Список питомцев
+                  value:
+                    - id: "507f1f77bcf86cd799439011"
+                      name: Барсик
+                      life: 10
+                      happiness: 2
+                      hunger: 2
+                    - id: "507f1f77bcf86cd799439012"
+                      name: Мурзик
+                      life: 8
+                      happiness: 5
+                      hunger: 3
+                empty:
+                  summary: Нет питомцев
+                  value: []
   /api/v1/pets:
     post:
       tags:
