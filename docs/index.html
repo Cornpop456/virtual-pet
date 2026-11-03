@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Pet API — Swagger UI</title>
+  <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui.css">
+  <style>
+    html { box-sizing: border-box; overflow-y: scroll; }
+    *, *:before, *:after { box-sizing: inherit; }
+    body { margin: 0; background: #fafafa; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+
+  <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-bundle.js"></script>
+  <script src="https://unpkg.com/swagger-ui-dist@5.17.14/swagger-ui-standalone-preset.js"></script>
+  <script>
+    const openApiSpec = {
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Virtual Pet API",
+    "description": "Сервис виртуального питомца. Позволяет создавать питомца, совершать с ним действия и получать текущую статистику.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8008",
+      "description": "Локальный сервер"
+    }
+  ],
+  "paths": {
+    "/api/v1/pets": {
+      "post": {
+        "tags": ["Pets"],
+        "summary": "Создать питомца",
+        "description": "Создаёт нового питомца с указанными именем и показателем жизни. Счастье и голод инициализируются значением 2.",
+        "operationId": "createPet",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Питомец успешно создан. Возвращается текущая статистика.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetStat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка в запросе",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Отсутствует имя питомца"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pets/{id}": {
+      "get": {
+        "tags": ["Pets"],
+        "summary": "Получить статистику питомца",
+        "description": "Возвращает текущие показатели питомца (имя, жизнь, счастье, голод).",
+        "operationId": "getPet",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Идентификатор питомца в формате MongoDB ObjectId",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-fA-F]{24}$",
+              "type": "string",
+              "example": "507f1f77bcf86cd799439011"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Статистика питомца",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetStat"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Питомец не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Такого питомца нет"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка в запросе",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Неверный формат id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pets/{id}/actions": {
+      "post": {
+        "tags": ["Pets"],
+        "summary": "Совершить действие с питомцем",
+        "description": "Выполняет одно из действий: покормить, погладить, дать вкусняшку, погулять или игнорировать. После действия возвращается актуальная статистика. Если после действия питомец исчезает (жизнь или счастье стали = 0), при следующем запросе будет 404.",
+        "operationId": "performAction",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Идентификатор питомца в формате MongoDB ObjectId",
+            "required": true,
+            "schema": {
+              "pattern": "^[0-9a-fA-F]{24}$",
+              "type": "string",
+              "example": "507f1f77bcf86cd799439011"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Действие успешно выполнено. Возвращается текущая статистика питомца.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PetStat"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ошибка в запросе",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Такого действия нет"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Питомец не найден",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Такого питомца нет"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreatePetRequest": {
+        "required": ["life", "name"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "minLength": 1,
+            "type": "string",
+            "description": "Кличка питомца",
+            "example": "Барсик"
+          },
+          "life": {
+            "minimum": 1,
+            "type": "integer",
+            "description": "Начальный показатель жизни",
+            "example": 10
+          }
+        }
+      },
+      "ActionRequest": {
+        "required": ["type"],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Тип действия",
+            "example": "feed",
+            "enum": ["feed", "pet", "treat", "walk", "ignore"]
+          }
+        }
+      },
+      "PetStat": {
+        "required": ["happiness", "hunger", "id", "life", "name"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "pattern": "^[0-9a-fA-F]{24}$",
+            "type": "string",
+            "description": "Уникальный идентификатор питомца в формате MongoDB ObjectId",
+            "example": "507f1f77bcf86cd799439011"
+          },
+          "name": {
+            "type": "string",
+            "description": "Кличка",
+            "example": "Барсик"
+          },
+          "life": {
+            "type": "integer",
+            "description": "Показатель жизни",
+            "example": 10
+          },
+          "happiness": {
+            "type": "integer",
+            "description": "Показатель счастья",
+            "example": 2
+          },
+          "hunger": {
+            "type": "integer",
+            "description": "Показатель голода",
+            "example": 2
+          }
+        }
+      },
+      "ErrorResponse": {
+        "required": ["error"],
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Текст ошибки",
+            "example": "Такого питомца нет"
+          }
+        }
+      }
+    }
+  }
+};
+
+    window.onload = function () {
+      SwaggerUIBundle({
+        spec: openApiSpec,
+        dom_id: '#swagger-ui',
+        deepLinking: true,
+        presets: [
+          SwaggerUIBundle.presets.apis,
+          SwaggerUIStandalonePreset
+        ],
+        plugins: [
+          SwaggerUIBundle.plugins.DownloadUrl
+        ],
+        layout: "StandaloneLayout",
+        defaultModelsExpandDepth: 1,
+        defaultModelExpandDepth: 1
+      });
+    };
+  </script>
+</body>
+</html>
