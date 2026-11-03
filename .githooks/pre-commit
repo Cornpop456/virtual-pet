@@ -1,0 +1,18 @@
+#!/bin/sh
+# Pre-commit: PEP 8 (ruff) + тесты. Падение любой проверки блокирует коммит.
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+if [ -x ".venv/bin/ruff" ]; then
+    RUFF=".venv/bin/ruff"
+    PYTEST=".venv/bin/pytest"
+else
+    RUFF="ruff"
+    PYTEST="pytest"
+fi
+
+echo "==> Ruff (PEP 8)"
+"$RUFF" check .
+
+echo "==> Tests"
+"$PYTEST" -q
