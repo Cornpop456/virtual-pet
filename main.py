@@ -1,5 +1,6 @@
 from pet import PetFactory
-from repository.pet_repository import PetRepository
+from repository import PetRepository
+from server import PetServer
 
 if __name__ == '__main__':
     pet1 = PetFactory.create("Bob", 10)
@@ -16,3 +17,7 @@ if __name__ == '__main__':
     print(pet1)
     print(pet2)
 
+    server = PetServer()
+    print(
+        f"Starting server on {server.server_address[0]}:{server.server_address[1]}")
+    server.start()

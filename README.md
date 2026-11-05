@@ -63,6 +63,18 @@ python3 -m venv .venv
 
 Покрытие классов с логикой (`pet/`, `repository/`) должно быть не ниже 100%.
 
+### Запуск HTTP-сервера
+
+Сервер находится в пакете `server` и использует многопоточную реализацию
+из стандартной библиотеки Python. Он принимает адрес виде аргументов `PetServer(host, port)` (по умолчанию "" и 8008),
+а метод `start` запускает обработку запросов:
+
+```python
+from server import PetServer
+server = PetServer(host="localhost", port=8000)
+server.start()
+```
+
 ### Линтер (PEP 8)
 
 ```bash
