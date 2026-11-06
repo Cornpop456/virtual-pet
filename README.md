@@ -52,6 +52,16 @@
 
 ```bash
 python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+Репозиторий питомцев использует MongoDB. По умолчанию подключение выполняется к
+`mongodb://localhost:27017`, базу `virtual_pet` и коллекцию `pets`. Другой адрес
+можно задать переменной окружения `MONGO_URI`.
+
+Для разработки и запуска тестов установите дополнительные зависимости:
+
+```bash
 .venv/bin/pip install -r requirements-dev.txt
 ```
 

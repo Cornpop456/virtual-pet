@@ -1,10 +1,18 @@
 from http.server import BaseHTTPRequestHandler
 from http import HTTPStatus
+from . import PetServer
 import json
 from typing import Any
 
 
 class PetHandler(BaseHTTPRequestHandler):
+    """
+    Обработчик запросов для PetServer.
+    self.server.repository используется для доступа
+    к экземпляру PetRepository, связанному с сервером.
+    """
+    server: PetServer  # type: ignore
+
     def do_GET(self) -> None:
         data = {"message": "Привет! Это сервер для обработки запросов о питомцах."}
         self._send_json(data)

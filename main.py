@@ -1,7 +1,17 @@
+from repository import PetRepository
 from server import PetServer
 
 if __name__ == '__main__':
-    server = PetServer()
+    repository = PetRepository()
+
+    server = PetServer(repository)
+
     print(
         f"Starting server on {server.server_address[0]}:{server.server_address[1]}")
-    server.start()
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        print("\nServer stopped.")
+    finally:
+        server.server_close()
+        repository.close()
