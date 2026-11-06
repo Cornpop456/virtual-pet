@@ -1,8 +1,8 @@
 from http.server import BaseHTTPRequestHandler
 from http import HTTPStatus
-from . import PetServer
 import json
 from typing import Any
+from .pet_server import PetServer
 
 
 class PetHandler(BaseHTTPRequestHandler):

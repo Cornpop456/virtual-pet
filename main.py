@@ -1,10 +1,10 @@
 from repository import PetRepository
-from server import PetServer
+from server import PetServer, PetHandler
 
 if __name__ == '__main__':
     repository = PetRepository()
 
-    server = PetServer(repository)
+    server = PetServer(PetHandler, repository)
 
     print(
         f"Starting server on {server.server_address[0]}:{server.server_address[1]}")
