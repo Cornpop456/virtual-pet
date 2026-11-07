@@ -79,6 +79,21 @@ class PetRepository:
             previous_loss=document["previous_loss"]
         )
 
+    def get_all(self) -> list[Pet]:
+        pets = []
+        for document in self._collection.find():
+            pets.append(
+                Pet(
+                    name=document["name"],
+                    life=document["life"],
+                    pet_id=str(document["_id"]),
+                    happiness=document["happiness"],
+                    hunger=document["hunger"],
+                    previous_loss=document["previous_loss"]
+                )
+            )
+        return pets
+
     def remove(self, pet_id: str) -> None:
         pet_object_id = self._parse_id_or_none(pet_id)
         if pet_object_id is not None:

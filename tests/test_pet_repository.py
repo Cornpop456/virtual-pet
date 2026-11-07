@@ -94,6 +94,25 @@ def test_get_invalid_id_returns_none(repo):
     assert repo.get("no-such-id") is None
 
 
+def test_get_all_returns_all_pets(repo):
+    buddy = Pet(
+        name="Buddy",
+        life=10,
+        happiness=4,
+        hunger=6,
+        previous_loss=2,
+    )
+    charlie = Pet(name="Charlie", life=7)
+    repo.save(buddy)
+    repo.save(charlie)
+
+    result = repo.get_all()
+
+    assert result == [buddy, charlie]
+    assert result[0] is not buddy
+    assert result[1] is not charlie
+
+
 # ---------- Удаление ----------
 
 def test_remove_deletes_pet(repo, collection):
