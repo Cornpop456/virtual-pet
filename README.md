@@ -81,10 +81,10 @@ docker run -d --name virtual-pet-mongo -p 27017:27017 -v pet-mongo-data:/data/db
 ### Запуск тестов с проверкой покрытия
 
 ```bash
-.venv/bin/pytest --cov=pet --cov=repository --cov-fail-under=100 --cov-report=term-missing
+.venv/bin/pytest --cov=pet --cov=repository --cov=server --cov-fail-under=100 --cov-report=term-missing
 ```
 
-Покрытие классов с логикой (`pet/`, `repository/`) должно быть не ниже 100%.
+Покрытие классов с логикой (`pet/`, `repository/`, `server/`) должно быть не ниже 100%.
 
 ### Запуск HTTP-сервера
 
@@ -136,4 +136,4 @@ git config core.hooksPath .githooks
 
 1. Устанавливает зависимости из `requirements-dev.txt`.
 2. Проверяет соответствие кода PEP 8 (`ruff check .`).
-3. Запускает тесты с проверкой покрытия классов с логикой на 100%.
+3. Запускает тесты с проверкой покрытия кода (`pet/`, `repository/`, `server/`) на 100%.

@@ -131,3 +131,50 @@ def test_remove_missing_pet_does_not_raise(repo):
 
 def test_remove_invalid_id_does_not_raise(repo):
     repo.remove("no-such-id")
+
+
+# ---------- Конструктор по умолчанию ----------
+
+def test_repository_without_collection_connects_with_default_settings(monkeypatch):
+    fake_client = mongomock.MongoClient()
+    captured = {}
+
+    def fake_mongo_client(uri, **kwargs):
+        captured["uri"] = uri
+        captured["kwargs"] = kwargs
+        return fake_client
+
+    monkeypatch.setattr(
+        "repository.pet_repository.MongoClient", fake_mongo_client
+    )
+
+    repo = PetRepository()
+    pet = Pet(name="Buddy", life=10)
+    repo.save(pet)
+
+    assert captured["uri"] == "mongodb://localhost:27017"
+    assert captured["kwargs"] == {"serverSelectionTimeoutMS": 5000}
+    assert repo.get(pet.pet_id) == pet
+    assert fake_client["virtual_pet"]["pets"].count_documents({}) == 1
+
+    repo.close()
+
+
+def test_repository_uses_mongo_uri_setting(monkeypatch):
+    fake_client = mongomock.MongoClient()
+    captured = {}
+
+    def fake_mongo_client(uri, **kwargs):
+        captured["uri"] = uri
+        return fake_client
+
+    monkeypatch.setattr(
+        "repository.pet_repository.MONGO_URI", "mongodb://example.com:27017"
+    )
+    monkeypatch.setattr(
+        "repository.pet_repository.MongoClient", fake_mongo_client
+    )
+
+    PetRepository()
+
+    assert captured["uri"] == "mongodb://example.com:27017"
