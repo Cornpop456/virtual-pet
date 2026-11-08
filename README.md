@@ -59,6 +59,19 @@ python3 -m venv .venv
 `mongodb://localhost:27017`, базу `virtual_pet` и коллекцию `pets`. Другой адрес
 можно задать переменной окружения `MONGO_URI`.
 
+### Запуск MongoDB через Docker
+
+Проще всего поднять MongoDB в Docker (том `pet-mongo-data` сохраняет данные
+между пересозданиями контейнера):
+
+```bash
+docker run -d --name virtual-pet-mongo -p 27017:27017 -v pet-mongo-data:/data/db mongo:7
+```
+
+Сервер подхватит `mongodb://localhost:27017` автоматически. После перезапуска
+машины или остановки контейнер запускается заново командой
+`docker start virtual-pet-mongo`.
+
 Для разработки и запуска тестов установите дополнительные зависимости:
 
 ```bash
