@@ -2,4 +2,5 @@
 mongomock
 pytest
 pytest-cov
+requests
 ruff
