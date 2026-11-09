@@ -43,6 +43,8 @@ class Pet:
     @apply_policy
     def feed(self):
         self.hunger -= 2
+        if self.hunger < 0:
+            self.hunger = 0
 
     @apply_policy
     def pet(self):
@@ -53,6 +55,8 @@ class Pet:
     def treat(self):
         self.happiness += 2
         self.hunger -= 1
+        if self.hunger < 0:
+            self.hunger = 0
 
     @apply_policy
     def walk(self):

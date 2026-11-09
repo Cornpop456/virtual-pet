@@ -23,6 +23,8 @@ ACTIONS = {
     "ignore": Pet.ignore,
 }
 
+FRONTEND_ORIGIN = "http://localhost:5173"
+
 
 class PetHandler(BaseHTTPRequestHandler):
     """
@@ -38,6 +40,25 @@ class PetHandler(BaseHTTPRequestHandler):
     """
 
     server: PetServer  # type: ignore
+
+    def end_headers(self):
+        self.send_header(
+            "Access-Control-Allow-Origin",
+            FRONTEND_ORIGIN
+        )
+        self.send_header(
+            "Access-Control-Allow-Methods",
+            "GET, POST, PUT, PATCH, DELETE, OPTIONS"
+        )
+        self.send_header(
+            "Access-Control-Allow-Headers",
+            "Content-Type, Authorization"
+        )
+        super().end_headers()
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.end_headers()
 
     def do_GET(self) -> None:
         try:
@@ -66,7 +87,8 @@ class PetHandler(BaseHTTPRequestHandler):
             )
 
     def _handle_list_pets(self) -> None:
-        pets = [pet_to_pet_stat(p).to_dict() for p in self.server.repository.get_all()]
+        pets = [pet_to_pet_stat(p).to_dict()
+                for p in self.server.repository.get_all()]
         self._send_json(pets)
 
     def _handle_get_pet(self, pet_id: str) -> None:
@@ -93,7 +115,8 @@ class PetHandler(BaseHTTPRequestHandler):
 
         life = body.get("life")
         if not isinstance(life, int) or isinstance(life, bool) or life < 1:
-            self._send_error(HTTPStatus.BAD_REQUEST, "Некорректный показатель жизни")
+            self._send_error(HTTPStatus.BAD_REQUEST,
+                             "Некорректный показатель жизни")
             return
 
         pet = PetFactory.create(name=name, life=life)
@@ -110,7 +133,8 @@ class PetHandler(BaseHTTPRequestHandler):
             return
 
         action_type = body.get("type")
-        action = ACTIONS.get(action_type) if isinstance(action_type, str) else None
+        action = ACTIONS.get(action_type) if isinstance(
+            action_type, str) else None
         if action is None:
             self._send_error(HTTPStatus.BAD_REQUEST, "Такого действия нет")
             return
