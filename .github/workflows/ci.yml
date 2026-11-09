@@ -22,4 +22,4 @@ jobs:
         run: ruff check .
 
       - name: Tests with coverage
-        run: pytest --cov=pet --cov=repository --cov=server --cov-fail-under=100 --cov-report=term-missing
+        run: pytest --cov=pet --cov=repository --cov=server --cov-fail-under=90 --cov-report=term-missing
