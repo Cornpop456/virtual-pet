@@ -1,3 +1,6 @@
+-r requirements.txt
+mongomock
 pytest
 pytest-cov
+requests
 ruff

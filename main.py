@@ -1,18 +1,17 @@
-from pet import PetFactory
-from repository.pet_repository import PetRepository
+from repository import PetRepository
+from server import PetServer, PetHandler
 
 if __name__ == '__main__':
-    pet1 = PetFactory.create("Bob", 10)
-    pet2 = PetFactory.create("Margaret", 5)
+    repository = PetRepository()
 
-    repo = PetRepository()
+    server = PetServer(PetHandler, repository)
 
-    print(pet1)
-    print(pet2)
-
-    repo.save(pet1)
-    repo.save(pet2)
-
-    print(pet1)
-    print(pet2)
-
+    print(
+        f"Starting server on {server.server_address[0]}:{server.server_address[1]}")
+    try:
+        server.start()
+    except KeyboardInterrupt:
+        print("\nServer stopped.")
+    finally:
+        server.server_close()
+        repository.close()

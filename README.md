@@ -52,16 +52,65 @@
 
 ```bash
 python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+```
+
+Репозиторий питомцев использует MongoDB. По умолчанию подключение выполняется к
+`mongodb://localhost:27017`, базу `virtual_pet` и коллекцию `pets`. Другой адрес
+можно задать переменной окружения `MONGO_URI`.
+
+### Запуск MongoDB через Docker
+
+Проще всего поднять MongoDB в Docker (том `pet-mongo-data` сохраняет данные
+между пересозданиями контейнера):
+
+```bash
+docker run -d --name virtual-pet-mongo -p 27017:27017 -v pet-mongo-data:/data/db mongo:7
+```
+
+Сервер подхватит `mongodb://localhost:27017` автоматически. После перезапуска
+машины или остановки контейнер запускается заново командой
+`docker start virtual-pet-mongo`.
+
+Для разработки и запуска тестов установите дополнительные зависимости:
+
+```bash
 .venv/bin/pip install -r requirements-dev.txt
 ```
 
 ### Запуск тестов с проверкой покрытия
 
 ```bash
-.venv/bin/pytest --cov=pet --cov=repository --cov-fail-under=100 --cov-report=term-missing
+.venv/bin/pytest --cov=pet --cov=repository --cov=server --cov-fail-under=100 --cov-report=term-missing
 ```
 
-Покрытие классов с логикой (`pet/`, `repository/`) должно быть не ниже 100%.
+Покрытие классов с логикой (`pet/`, `repository/`, `server/`) должно быть не ниже 100%.
+
+### Запуск HTTP-сервера
+
+Сервер находится в пакете `server` и использует многопоточную реализацию
+из стандартной библиотеки Python. Он принимает адрес виде аргументов `PetServer(host, port)` (по умолчанию "" и 8008),
+а метод `start` запускает обработку запросов:
+
+```python
+from server import PetServer
+server = PetServer(host="localhost", port=8000)
+server.start()
+```
+
+### Тестирование через Postman
+
+Коллекция запросов ко всем эндпоинтам лежит в `docs/virtual-pet-api.postman_collection.json`
+и дублирует проверки по `docs/openapi.yaml`: основной сценарий, обработка ошибок и сценарий
+смерти питомца.
+
+Чтобы прогнать коллекцию:
+
+1. Запустите сервер (`python3 main.py`).
+2. Импортируйте файл коллекции в Postman: **File → Import**.
+3. При необходимости поменяйте переменную коллекции `baseUrl` (по умолчанию `http://localhost:8008`).
+4. Запустите коллекцию через **Collection Runner** — запросы выполняются по порядку,
+   id созданных питомцев передаётся между запросами через переменные коллекции.
 
 ### Линтер (PEP 8)
 
@@ -87,4 +136,4 @@ git config core.hooksPath .githooks
 
 1. Устанавливает зависимости из `requirements-dev.txt`.
 2. Проверяет соответствие кода PEP 8 (`ruff check .`).
-3. Запускает тесты с проверкой покрытия классов с логикой на 100%.
+3. Запускает тесты с проверкой покрытия кода (`pet/`, `repository/`, `server/`) на 100%.

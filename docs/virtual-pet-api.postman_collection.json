@@ -1,0 +1,704 @@
+{
+  "info": {
+    "_postman_id": "b7e3a1c4-52f9-4d8e-9a6b-1f0c2d3e4a5b",
+    "name": "Virtual Pet API",
+    "description": "Коллекция запросов к сервису виртуального питомца по docs/openapi.yaml.\n\nЗапускать через Collection Runner: папки выполняются сверху вниз — основной сценарий, обработка ошибок, сценарий смерти питомца. Сервер должен быть запущен (по умолчанию http://localhost:8008), переменная коллекции `baseUrl` переопределяет адрес.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Основной сценарий",
+      "item": [
+        {
+          "name": "01. Создать питомца",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"В ответе есть все поля статистики\", function () {",
+                  "    pm.expect(body).to.have.all.keys(\"id\", \"name\", \"life\", \"happiness\", \"hunger\");",
+                  "});",
+                  "",
+                  "pm.test(\"id — MongoDB ObjectId\", function () {",
+                  "    pm.expect(body.id).to.match(/^[0-9a-fA-F]{24}$/);",
+                  "});",
+                  "",
+                  "pm.test(\"Имя и жизнь совпадают с запросом\", function () {",
+                  "    pm.expect(body.name).to.eql(\"Барсик\");",
+                  "    pm.expect(body.life).to.eql(10);",
+                  "});",
+                  "",
+                  "pm.test(\"Счастье и голод инициализируются значениями 2\", function () {",
+                  "    pm.expect(body.happiness).to.eql(2);",
+                  "    pm.expect(body.hunger).to.eql(2);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"petId\", body.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Барсик\",\n  \"life\": 10\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets"]
+            },
+            "description": "Создаёт питомца Барсика с life=10 и сохраняет его id в переменную petId для последующих запросов."
+          }
+        },
+        {
+          "name": "02. Получить список питомцев",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Content-Type — application/json\", function () {",
+                  "    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"Ответ — массив\", function () {",
+                  "    pm.expect(body).to.be.an(\"array\");",
+                  "});",
+                  "",
+                  "pm.test(\"Созданный питомец есть в списке\", function () {",
+                  "    const petId = pm.collectionVariables.get(\"petId\");",
+                  "    pm.expect(body.some(p => p.id === petId)).to.be.true;",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets"]
+            },
+            "description": "Возвращает список всех питомцев; созданный в предыдущем запросе питомец должен в нём присутствовать."
+          }
+        },
+        {
+          "name": "03. Получить статистику питомца",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(",
+                  "    \"Статистика совпадает с созданным питомцем\",",
+                  "    function () {",
+                  "        const petId = pm.collectionVariables.get(\"petId\");",
+                  "        pm.expect(body).to.eql({",
+                  "            id: petId,",
+                  "            name: \"Барсик\",",
+                  "            life: 10,",
+                  "            happiness: 2,",
+                  "            hunger: 2,",
+                  "        });",
+                  "    }",
+                  ");"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{petId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{petId}}"]
+            },
+            "description": "Возвращает текущую статистику созданного питомца."
+          }
+        },
+        {
+          "name": "04. Покормить (feed)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"Голод уменьшился на 2\", function () {",
+                  "    pm.expect(body.hunger).to.eql(0);",
+                  "});",
+                  "",
+                  "pm.test(\"Счастье и жизнь не изменились\", function () {",
+                  "    pm.expect(body.happiness).to.eql(2);",
+                  "    pm.expect(body.life).to.eql(10);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"feed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{petId}}/actions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{petId}}", "actions"]
+            },
+            "description": "Кормление: голод −2 (2 → 0)."
+          }
+        },
+        {
+          "name": "05. Погладить (pet)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "const body = pm.response.json();",
+                  "",
+                  "pm.test(\"Счастье увеличилось на 1\", function () {",
+                  "    pm.expect(body.happiness).to.eql(3);",
+                  "});",
+                  "",
+                  "pm.test(\"Голод увеличился на 1\", function () {",
+                  "    pm.expect(body.hunger).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"pet\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{petId}}/actions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{petId}}", "actions"]
+            },
+            "description": "Поглаживание: счастье +1 (2 → 3), голод +1 (0 → 1)."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Обработка ошибок",
+      "item": [
+        {
+          "name": "06. Создание без имени",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Отсутствует имя питомца\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"life\": 10\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets"]
+            }
+          }
+        },
+        {
+          "name": "07. Создание с некорректной жизнью",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Некорректный показатель жизни\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Рекс\",\n  \"life\": 0\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets"]
+            }
+          }
+        },
+        {
+          "name": "08. Создание с некорректным JSON",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Некорректный JSON\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{not json"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets"]
+            }
+          }
+        },
+        {
+          "name": "09. Получение: неверный формат id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Неверный формат id\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/not-an-id",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "not-an-id"]
+            }
+          }
+        },
+        {
+          "name": "10. Получение: несуществующий питомец",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Случайный ObjectId: id заведомо не существует в базе",
+                  "let missingId = \"\";",
+                  "for (let i = 0; i < 24; i++) {",
+                  "    missingId += \"0123456789abcdef\"[Math.floor(Math.random() * 16)];",
+                  "}",
+                  "pm.collectionVariables.set(\"missingId\", missingId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Такого питомца нет\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{missingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{missingId}}"]
+            }
+          }
+        },
+        {
+          "name": "11. Действие: неизвестное действие",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Такого действия нет\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"dance\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{petId}}/actions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{petId}}", "actions"]
+            }
+          }
+        },
+        {
+          "name": "12. Действие: несуществующий питомец",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "// Случайный ObjectId: id заведомо не существует в базе",
+                  "let missingId = \"\";",
+                  "for (let i = 0; i < 24; i++) {",
+                  "    missingId += \"0123456789abcdef\"[Math.floor(Math.random() * 16)];",
+                  "}",
+                  "pm.collectionVariables.set(\"missingId\", missingId);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Такого питомца нет\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"feed\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{missingId}}/actions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{missingId}}", "actions"]
+            }
+          }
+        },
+        {
+          "name": "13. Неизвестный путь",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Такого пути нет\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/unknown",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "unknown"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Смерть питомца",
+      "item": [
+        {
+          "name": "14. Создать питомца с life=1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.collectionVariables.set(\"dyingPetId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Шарик\",\n  \"life\": 1\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets"]
+            },
+            "description": "Создаёт питомца с life=1, id сохраняется в переменную dyingPetId."
+          }
+        },
+        {
+          "name": "15. ignore — счастье снижается до 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Счастье снизилось до 1\", function () {",
+                  "    pm.expect(pm.response.json().happiness).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ignore\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{dyingPetId}}/actions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{dyingPetId}}", "actions"]
+            }
+          }
+        },
+        {
+          "name": "16. ignore — питомец погибает",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 200 — действие отвечает финальной статистикой\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test(\"Счастье достигло 0\", function () {",
+                  "    pm.expect(pm.response.json().happiness).to.eql(0);",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"ignore\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{dyingPetId}}/actions",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{dyingPetId}}", "actions"]
+            },
+            "description": "Счастье достигает 0 — питомец удаляется из базы, но действие возвращает 200 с финальной статистикой."
+          }
+        },
+        {
+          "name": "17. Статистика погибшего питомца",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Статус 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});",
+                  "",
+                  "pm.test(\"Текст ошибки\", function () {",
+                  "    pm.expect(pm.response.json().error).to.eql(\"Такого питомца нет\");",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/pets/{{dyingPetId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "pets", "{{dyingPetId}}"]
+            },
+            "description": "Следующий запрос по документации возвращает 404."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8008",
+      "type": "string"
+    },
+    {
+      "key": "petId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "dyingPetId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "missingId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
